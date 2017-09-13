@@ -7,6 +7,9 @@ APACHE_AUTH_BASIC=${APACHE_AUTH-0}
 APACHE_AUTH_NAME=${APACHE_AUTH_NAME-"Secured Environment"}
 APACHE_AUTH_FILE=${APACHE_AUTH_FILE-/var/www/.htpasswd}
 
+mkdir /etc/apache2/certs/
+openssl req -x509 -newkey rsa:4096 -keyout /etc/apache2/certs/self-signed.key -out /etc/apache2/certs/self-signed.crt -days 365 -nodes -subj "/C=US/ST=Massachusetts/L=Amesbury/O=Imarc LLC/OU=Org/CN=www.imarc.com"
+
 cat > /etc/apache2/sites-enabled/000-default.conf <<EOF
 ServerName localhost
 
@@ -28,4 +31,28 @@ ServerName localhost
         </If>
     </Directory>
 </VirtualHost>
+
+<VirtualHost *:443>
+    LogLevel info
+	DocumentRoot ${APACHE_ROOT}
+    SSLEngine on
+
+	SSLCertificateFile /etc/apache2/certs/self-signed.crt
+	SSLCertificateKeyFile /etc/apache2/certs/self-signed.key
+
+
+    <Directory ~ "/var/www/.+">
+        Require all granted
+        AllowOverride All
+        Options FollowSymLinks
+
+        <If "-T env('APACHE_AUTH')">
+            AuthType Basic
+            AuthName "${APACHE_AUTH_NAME}"
+            AuthUserFile ${APACHE_AUTH_FILE}
+            Require valid-user
+        </If>
+    </Directory>
+</VirtualHost>
+
 EOF

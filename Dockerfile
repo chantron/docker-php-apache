@@ -65,7 +65,7 @@ RUN apt-get autoremove -y
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/src/*
 
 # enable apache modules
-RUN a2enmod rewrite headers cache cache_disk expires
+RUN a2enmod rewrite headers cache cache_disk expires ssl
 
 # install composer
 WORKDIR /tmp
